@@ -4,7 +4,6 @@
 @using BlogProject.Models
 @model IPagedList<Post>
 @{
-    ViewData["Title"] = "Devbinge";
 }
 
 <div class="container px-4 px-lg-5">
@@ -24,6 +23,12 @@
                         <a href="#!">@post.BlogUser?.FullName</a>
                         on @post.Created.ToString("MMM dd, yyyy")
                     </p>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <div class="">
+                            <a class="btn btn-dark rounded-pill" asp-action="Edit" asp-controller="Posts" asp-route-id="@post.Id">Edit</a>
+                        </div>
+                    }
                 </div>
                 <hr />
             }

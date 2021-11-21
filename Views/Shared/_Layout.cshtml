@@ -33,8 +33,8 @@
                     <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-action="Contact" asp-controller="Home">Contact</a></li>
                     @if (User.IsInRole("Admin"))
                     {
-                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-action="Create" asp-controller="Blogs">Create Blog</a></li>
-                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-action="Create" asp-controller="Posts">Create Post</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-action="Index" asp-controller="Blogs">Blogs</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-action="Index" asp-controller="Posts">Posts</a></li>
                     }
                     <partial name="_LoginPartial" />
                 </ul>
@@ -47,7 +47,7 @@
             <div class="row gx-4 gx-lg-5 justify-content-center">
                 <div class="col-md-10 col-lg-8 col-xl-7">
                     <div class="site-heading">
-                        <h1>@ViewData["Title"]</h1>
+                        <h1>Devbinge</h1>
                         <span class="subheading">@ViewData["Subtitle"]</span>
 
                         <form asp-action="Search" asp-controller="Posts">

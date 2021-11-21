@@ -2,52 +2,60 @@
 @using X.PagedList.Mvc.Core
 @using X.PagedList.Web.Common
 @using BlogProject.Models
+@using BlogProject.Services
+@inject IImageService imageService
 @model IPagedList<Blog>
 @{
     ViewData["Title"] = "Devbinge";
 }
 
-<div class="container px-4 px-lg-5">
-    <div class="row gx-4 gx-lg-5 justify-content-center">
-        <div class="col-md-10 col-lg-8 col-xl-7">
+<div class="container">
+    <div class="text-center mb-lg-4">
+        <h1 style="font-size: 3rem">Blog Categories</h1>
+    </div>
+    <div class="row row-cols-1 row-cols-md-3 mt-5 g-4">
+        @foreach (var blog in Model)
+        {
+            <div class="col">
+                <div class="card h-100 rounded-top">
+                    <img src="@imageService.DecodeImage(blog.ImageData, blog.ContentType)"
+                         style="object-fit: cover; height: 25vw"
+                         class="card-img-top rounded-top" />
+                    <div class="card-body m-0">
+                        <a asp-controller="Posts" asp-action="BlogPosts" asp-route-id="@blog.Id" class="card-title">
+                            <h3>@blog.Name</h3>
+                            <p class="card-text mt-2">@blog.Description</p>
+                        </a>
+                    </div>
+                    <div class="text-center mt-2">
+                        <a class="btn btn-dark w-100" asp-action="BlogPosts" asp-controller="Posts" asp-route-id="@blog.Id">
+                            Read Posts
+                        </a>
+                    </div>
 
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <hr />
 
-            @foreach (var blog in Model)
-            {
-                <div class="post-preview">
-                    <a asp-controller="Posts" asp-action="BlogPosts" asp-route-id="@blog.Id">
-                        <h2 class="post-title">@blog.Name</h2>
-                        <h3 class="post-subtitle">@blog.Description</h3>
-                    </a>
-                    <p class="post-meta">
-                        Authored by
-                        <a href="#!">@blog.BlogUser.FullName</a>
-                        on @blog.Created.ToString("MMM dd, yyyy")
-                    </p>
+                        <div class="text-center">
+                            <a class="btn btn-dark w-100" asp-action="Create" asp-controller="Posts" asp-route-id="@blog.Id">Create Post</a>
+                        </div>
+
+                        <hr />
+
+                        <div class="text-center">
+                            <a class="btn btn-dark w-100" asp-action="Edit" asp-controller="Blogs" asp-route-id="@blog.Id">Edit Blog</a>
+                        </div>
+                    }
                 </div>
-                <hr />
-            }
-
-
-            @*
-
-
-                <div class="post-preview">
-                    <a asp-controller="Posts" asp-action="Index">
-                        <h2 class="post-title">@blog.Name</h2>
-                        <h3 class="post-subtitle">@blog.Description</h3>
-                    </a>
-                    <p class="post-meta">
-                        Posted by
-                        <a href="#!">Start Bootstrap</a>
-                        on September 24, 2021
-                    </p>
-                </div>
-
-            *@
-        </div>
+            </div>
+        }
     </div>
 </div>
+
+
+
+
 
 <div class="row">
     <div class="col h3">
@@ -69,6 +77,8 @@
 
 @section Scripts {
     <script>
-
+        $(document).ready(function () {
+            $("p").tooltip();
+        })
     </script>
 }

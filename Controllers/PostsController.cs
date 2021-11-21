@@ -58,6 +58,7 @@ namespace BlogProject.Controllers
             {
                 return NotFound();
             }
+            var singlePost = _context.Posts.Include(p => p.Blog).FirstOrDefault(p => p.BlogId == id);
 
             var posts = _context.Posts
                 .Where(p => p.BlogId == id && p.ReadyStatus == Enums.ReadyStatus.ProductionReady)
@@ -65,6 +66,7 @@ namespace BlogProject.Controllers
                 .Include(b => b.BlogUser)
                 .ToPagedListAsync(pageNumber, pageSize);
 
+            ViewData["Subtitle"] = singlePost.Blog.Name;
             return View(await posts);
         }
 

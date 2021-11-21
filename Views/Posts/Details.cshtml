@@ -2,18 +2,26 @@
 @using BlogProject.Models
 @using Microsoft.AspNetCore.Identity
 @using BlogProject.Services
+@using BlogProject.Enums
 @inject IImageService imageService
 @inject UserManager<BlogUser> UserManager
 @{
-    ViewData["Title"] = Model.Title;
+    ViewData["Title"] = "Devbinge";
     var user = User.Identity.IsAuthenticated ? await UserManager.FindByEmailAsync(User.Identity.Name) : null;
 }
 
 <!--Post Content-->
+
 <article class="mb-4">
+    <div class="container text-center">
+        <h1 class="">@Model.Title</h1>
+        <span class="fw-bold subheading">@Model.Abstract</span>
+        <br />
+        <i class="subheading">Authored by @Model.BlogUser.FullName on @Model.Created.ToString("MMM dd, yyyy")</i>
+    </div>
     <div class="container px-4 px-lg-5">
         <div class="row gx-4 gx-lg-5 justify-content-center">
-            <div class="col-md-10 col-lg-8 col-xl-7">
+            <div class="col-md-10 col-lg-8 col-xl-7" style="text-align: left;">
                 @Html.Raw(Model.Content)
             </div>
         </div>
@@ -45,6 +53,8 @@
         <div class="row d-flex justify-content-center">
             <div class="col-md-12 col-lg-10">
                 <div class="card text-dark">
+
+                    @**------- CREATE COMMENTS START ------*@
                     @if (User.Identity.IsAuthenticated)
                     {
                         <form asp-action="Create" method="post" asp-controller="Comments" class="card-footer py-3 border-0" style="background-color: #f8f9fa;">
@@ -78,16 +88,22 @@
                         <h4 class="mb-0">Recent comments</h4>
                         <p class="fw-light mb-4 pb-2">@(Model.Comments.Count == 1 ? $"{Model.Comments.Count} {Html.Raw("Comment")}": $"{Model.Comments.Count} {Html.Raw("Comments")}")</p>
                     </div>
+                    @**------- CREATE COMMENTS END ------*@
 
 
 
 
+                    @**------- COMMENTS START ------*@
                     @foreach (var comment in Model.Comments)
                     {
                         <hr class="my-0" />
 
-                        <form class="card-body p-4" asp-action="Edit" method="post" asp-controller="Comments">
+                        <form class="card-body p-4" asp-action="@((User.IsInRole("Admin") || User.IsInRole("Mod")) && comment.BlogUserId != user.Id ? "Moderate" : "Edit")" method="post" asp-controller="Comments">
                             @Html.Hidden("Id", comment.Id)
+                            @if ((User.IsInRole("Admin") || User.IsInRole("Mod")) && comment.BlogUserId != user.Id)
+                            {
+                                @Html.Hidden("Body", comment.Body)
+                            }
                             <div class="d-flex flex-start">
                                 <img class="rounded-circle shadow-1-strong me-3"
                                      style="object-fit:cover"
@@ -99,9 +115,18 @@
                                     <h6 class="fw-bold mb-0">@comment.BlogUser.FullName</h6>
                                     <div class="d-flex align-items-center mb-3 mt-0">
                                         <p class="mb-0 mt-0">
-                                            <small class="mb-0">@comment.Created.ToString("MMM dd, yyyy")</small>
-                                            <span class="edit-icon-parent badge bg-success">@(comment.Moderated.HasValue ? $"{comment.ModerationType}" : "")</span>
-                                            @if (User.Identity.IsAuthenticated && comment.BlogUserId == user.Id)
+                                            @if (comment.Moderated.HasValue)
+                                            {
+                                                <small><i>moderated on @comment.Moderated?.ToString("MMM dd, yyyy")</i></small>
+                                                <br />
+                                                <span class="edit-icon-parent badge bg-warning">@comment.ModerationType</span>
+
+                                            }
+                                            else
+                                            {
+                                                <small><i class="mb-0">posted on @comment.Created.ToString("MMM dd, yyyy")</i></small>
+                                            }
+                                            @if ((User.Identity.IsAuthenticated && comment.BlogUserId == user.Id && !comment.Moderated.HasValue) || User.IsInRole("Mod") || User.IsInRole("Admin"))
                                             {
                                                 <button type="button" onclick="enableEdit(event)" class="link-muted m-0 p-0 btn edit-icon">
                                                     <i class="fs-6 fas fa-pencil-alt ms-2"></i>
@@ -109,32 +134,26 @@
                                             }
                                         </p>
                                     </div>
-                                    <textarea name="body" rows="5" id="comment" disabled style="" class="mb-0">@comment.Body</textarea>
+                                    <textarea name="@((User.IsInRole("Admin") || User.IsInRole("Mod")) && comment.BlogUserId != user.Id ? "ModeratedBody" : "Body")" rows="5" id="comment" disabled class="mb-0">@(comment.Moderated.HasValue ? comment.ModeratedBody : comment.Body)</textarea>
                                 </div>
+                                @if ((User.IsInRole("Admin") || User.IsInRole("Mod")) && comment.BlogUserId != user.Id)
+                                {
+                                    <div class="ModerationType form-control bg-white">
+                                        <label class="control-label">Reason For Moderation</label>
+                                        <select disabled class="form-select" asp-for="@comment.ModerationType" name="ModerationType" asp-items="Html.GetEnumSelectList<ModerationType>()"></select>
+                                    </div>
+                                }
+                            </div>
+                            <div class="button-div float-end mt-2 pt-1">
+                                <button type="submit" class="btn btn-primary btn-sm m-1">Post</button>
+                                <button href="@Url.Action("Delete", "Comments", new { id = comment.Id, slug = comment.Post.Slug })" onclick="deleteComment(event)" type="button" class="btn btn-danger btn-sm m-1">Delete</button>
+                                <button onclick="disableEdit()" type="button" class="btn btn-outline-primary btn-sm">Cancel</button>
                             </div>
                         </form>
 
-
                         <hr class="my-0" style="height: 1px;" />
-
                     }
-
-
-
-
-
-
-                    @*<div class="media border border-dark p-3 mb-3 w-50 container rounded-2 bg-light">
-            <img class="mr-3 mt-3 rounded-circle" style="padding: 0; width: 50px; height: 50px; line-height: 50px; border-radius: 50%; object-fit: cover;" src="@imageService.DecodeImage(comment.BlogUser.ImageData, comment.BlogUser.ContentType)" />
-            <div class="media-body">
-                <h4>@comment.BlogUser.DisplayName</h4>
-                <small><i>Posted on @comment.Created.ToString("MMM dd, yyyy")</i></small>
-                <p>@comment.Body</p>
-            </div>
-        </div>*@
-
-
-
+                    @**------- COMMENTS END ------*@
                 </div>
             </div>
         </div>
@@ -143,5 +162,5 @@
 
 
 @section Scripts {
-    <script src="~/js/custom.js"></script>
+    <script src="~/js/comment.js"></script>
 }
