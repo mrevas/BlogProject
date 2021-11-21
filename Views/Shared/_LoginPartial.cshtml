@@ -1,26 +1,39 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using BlogProject.Services
+@inject IImageService imageService
 @inject SignInManager<BlogUser> SignInManager
 @inject UserManager<BlogUser> UserManager
 
-<ul class="navbar-nav">
-@if (SignInManager.IsSignedIn(User))
-{
-    <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity.Name!</a>
-    </li>
-    <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
-        </form>
-    </li>
-}
-else
-{
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
-    </li>
-}
-</ul>
+
+<div class="collapse navbar-collapse" id="navbarResponsive">
+    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        var user = await UserManager.FindByEmailAsync(User.Identity.Name);
+
+        <li class="nav-item">
+            <a class="nav-link px-lg-3 py-3 py-lg-4" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })">Logout</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link px-lg-3 py-3 py-lg-4 d-inline" asp-area="Identity" asp-page="/Account/Manage/Index">
+                <img class="rounded-circle shadow-1-strong me-3 mt-2"
+                    style="object-fit: cover;"
+                    src="@imageService.DecodeImage(user.ImageData, user.ContentType)"
+                    alt="avatar"
+                    width="40"
+                    height="40" />
+            </a>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a>
+        </li>
+    }
+    </ul>
+</div>

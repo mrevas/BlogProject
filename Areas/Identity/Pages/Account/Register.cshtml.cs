@@ -15,6 +15,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using BlogProject.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace BlogProject.Areas.Identity.Pages.Account
 {
@@ -25,17 +28,21 @@ namespace BlogProject.Areas.Identity.Pages.Account
         private readonly UserManager<BlogUser> _userManager;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IBlogEmailSender _emailSender;
+        private readonly IImageService _imageService;
+        private readonly IConfiguration _configuration;
 
         public RegisterModel(
             UserManager<BlogUser> userManager,
             SignInManager<BlogUser> signInManager,
             ILogger<RegisterModel> logger,
-            IBlogEmailSender emailSender)
+            IBlogEmailSender emailSender, IImageService imageService, IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _imageService = imageService;
+            _configuration = configuration;
         }
 
         [BindProperty]
@@ -48,9 +55,27 @@ namespace BlogProject.Areas.Identity.Pages.Account
         public class InputModel
         {
             [Required]
+            [Display(Name="First Name")]
+            [StringLength(50, ErrorMessage ="The {0} must be at least {2} and no more than {1} characters", MinimumLength =2)]
+            public string FirstName { get; set; }
+
+            [Required]
+            [Display(Name="Last Name")]
+            [StringLength(50, ErrorMessage ="The {0} must be at least {2} and no more than {1} characters", MinimumLength =2)]
+            public string LastName { get; set; }
+
+            [Required]
+            [Display(Name="Username")]
+            [StringLength(50, ErrorMessage ="The {0} must be at least {2} and no more than {1} characters", MinimumLength =2)]
+            public string DisplayName { get; set; }
+
+            [Required]
             [EmailAddress]
             [Display(Name = "Email")]
             public string Email { get; set; }
+
+            [Display(Name ="Profile Picture")]
+            public IFormFile Image { get; set; }
 
             [Required]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
@@ -76,7 +101,19 @@ namespace BlogProject.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = new BlogUser { UserName = Input.Email, Email = Input.Email };
+                var user = new BlogUser
+                {
+                    UserName = Input.Email,
+                    Email = Input.Email,
+                    DisplayName = Input.DisplayName,
+                    FirstName = Input.FirstName,
+                    LastName = Input.LastName,
+                    ImageData = (await _imageService.EncodeImageAsync(Input.Image)) ??
+                                await _imageService.EncodeImageAsync(_configuration["DefaultUserImage"]),
+                    ContentType = Input.Image is null ?
+                                  Path.GetExtension(_configuration["DefaultUserImage"]) :
+                                  _imageService.ContentType(Input.Image)
+                };
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {

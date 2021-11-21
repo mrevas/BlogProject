@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TheBlogProject.Services;
 
 namespace BlogProject
 {
@@ -49,8 +50,9 @@ namespace BlogProject
             services.AddScoped<DataService>();
             services.Configure<MailSettings>(Configuration.GetSection("MailSettings"));
             services.AddScoped<IBlogEmailSender, EmailService>();
-
             services.AddScoped<IImageService, BasicImageService>();
+            services.AddScoped<ISlugService, BasicSlugService>();
+            services.AddScoped<BlogSearchService>();
 
         }
 
@@ -79,8 +81,14 @@ namespace BlogProject
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
+                   name: "SlugRoute",
+                   pattern: "Posts/Details/{slug}",
+                   defaults: new { controller = "Posts", action = "Details" });
+
+                endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+
                 endpoints.MapRazorPages();
             });
         }

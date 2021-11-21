@@ -1,0 +1,15 @@
+﻿button.btn-rounded, a.btn-rounded, input.btn-rounded {
+    line-height: .5;
+    border-radius: 10px;
+}
+
+select.tags option {
+    font-weight: 800;
+}
+
+#comment:disabled {
+    border: none;
+    background-color: transparent;
+    resize: none;
+    width: 25vw;
+}

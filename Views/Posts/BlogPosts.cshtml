@@ -2,7 +2,7 @@
 @using X.PagedList.Mvc.Core
 @using X.PagedList.Web.Common
 @using BlogProject.Models
-@model IPagedList<Blog>
+@model IPagedList<Post>
 @{
     ViewData["Title"] = "Devbinge";
 }
@@ -12,17 +12,17 @@
         <div class="col-md-10 col-lg-8 col-xl-7">
 
 
-            @foreach (var blog in Model)
+            @foreach (var post in Model)
             {
                 <div class="post-preview">
-                    <a asp-controller="Posts" asp-action="BlogPosts" asp-route-id="@blog.Id">
-                        <h2 class="post-title">@blog.Name</h2>
-                        <h3 class="post-subtitle">@blog.Description</h3>
+                    <a asp-controller="Posts" asp-action="Details" asp-route-slug="@post.Slug">
+                        <h2 class="post-title">@post.Title</h2>
+                        <h3 class="post-subtitle">@post.Abstract</h3>
                     </a>
                     <p class="post-meta">
                         Authored by
-                        <a href="#!">@blog.BlogUser.FullName</a>
-                        on @blog.Created.ToString("MMM dd, yyyy")
+                        <a href="#!">@post.BlogUser?.FullName</a>
+                        on @post.Created.ToString("MMM dd, yyyy")
                     </p>
                 </div>
                 <hr />
@@ -57,7 +57,7 @@
 
 <div class="row">
     <div class="col">
-        @Html.PagedListPager(Model, page => Url.Action("Index", new { page = page }),
+        @Html.PagedListPager(Model, page => Url.Action("BlogPosts", new { id = Model.FirstOrDefault().BlogId, page = page }),
          new PagedListRenderOptions
          {
              LiElementClasses = new string[] { "page-item" },

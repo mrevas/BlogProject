@@ -10,6 +10,7 @@ using BlogProject.Models;
 using BlogProject.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace BlogProject.Controllers
 {
@@ -27,10 +28,11 @@ namespace BlogProject.Controllers
         }
 
         // GET: Blogs
+        [Authorize(Roles = "Admin, Mod")]
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Blogs.Include(b => b.BlogUser);
-            return View(await applicationDbContext.ToListAsync());
+            var blogs = await _context.Blogs.Include(b => b.BlogUser).ToListAsync();
+            return View(blogs);
         }
 
         // GET: Blogs/Details/5
@@ -53,7 +55,7 @@ namespace BlogProject.Controllers
         }
 
         // GET: Blogs/Create
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
@@ -64,6 +66,7 @@ namespace BlogProject.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("Name,Description,Image")] Blog blog)
         {
             if (ModelState.IsValid)
@@ -83,6 +86,7 @@ namespace BlogProject.Controllers
         }
 
         // GET: Blogs/Edit/5
+        [Authorize(Roles ="Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -103,7 +107,8 @@ namespace BlogProject.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Name,Description,Image")] Blog blog)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,NewImage")] Blog blog, IFormFile newImage)
         {
             if (id != blog.Id)
             {
@@ -114,11 +119,19 @@ namespace BlogProject.Controllers
             {
                 try
                 {
-                    blog.Updated = DateTime.Now;
+                    var newBlog = await _context.Blogs.FindAsync(blog.Id);
 
-                    _context.Update(blog);
+                    newBlog.Updated = DateTime.Now;
+                    newBlog.Name = blog.Name;
+                    newBlog.Description = blog.Description;
+                    if (newImage is not null)
+                    {
+                        newBlog.ImageData = await _imageService.EncodeImageAsync(newImage);
+                        newBlog.ContentType = _imageService.ContentType(newImage);
+                    }
+
                     await _context.SaveChangesAsync();
-                }
+                }  
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!BlogExists(blog.Id))
@@ -137,6 +150,7 @@ namespace BlogProject.Controllers
         }
 
         // GET: Blogs/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -158,6 +172,7 @@ namespace BlogProject.Controllers
         // POST: Blogs/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var blog = await _context.Blogs.FindAsync(id);
