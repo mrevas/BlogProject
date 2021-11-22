@@ -17,7 +17,7 @@
         <h1 class="">@Model.Title</h1>
         <span class="fw-bold subheading">@Model.Abstract</span>
         <br />
-        <i class="subheading">Authored by @Model.BlogUser.FullName on @Model.Created.ToString("MMM dd, yyyy")</i>
+        <i class="subheading">Authored by <a target="_blank" href="https://www.linkedin.com/in/marc-rivas/">@Model.BlogUser.FullName</a> on @Model.Created.ToString("MMM dd, yyyy")</i>
     </div>
     <div class="container px-4 px-lg-5">
         <div class="row gx-4 gx-lg-5 justify-content-center">
@@ -40,7 +40,7 @@
         <div class="col text-center">
             @foreach (var tag in Model.Tags)
             {
-                <a class="btn btn-warning btn-sm btn-block btn-outline-dark" asp-action="TagIndex" asp-route-tag="@tag.Text.ToLower()">#@tag.Text</a>
+                <a class="btn btn-warning btn-sm btn-block btn-outline-dark">#@tag.Text</a>
             }
         </div>
     </div>

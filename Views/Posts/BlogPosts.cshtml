@@ -20,7 +20,7 @@
                     </a>
                     <p class="post-meta">
                         Authored by
-                        <a href="#!">@post.BlogUser?.FullName</a>
+                        <a target="_blank" href="https://marcrivas.com/">@post.BlogUser?.FullName</a>
                         on @post.Created.ToString("MMM dd, yyyy")
                     </p>
                     @if (User.IsInRole("Admin"))
@@ -66,7 +66,7 @@
          new PagedListRenderOptions
          {
              LiElementClasses = new string[] { "page-item" },
-             PageClasses = new string[] { "page-link" }
+             PageClasses = new string[] { "page-link bg-dark border-0 fw-bold" }
          })
     </div>
 </div>
